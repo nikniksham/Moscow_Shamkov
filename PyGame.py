@@ -2,20 +2,16 @@ import pygame
 
 
 pygame.init()
-vvod = input().split()
-thickness, col = int(vvod[0]), int(vvod[1])
-# width, height = 500, 500
-size = col * thickness * 2, col * thickness * 2
+N = int(input())
+# N = 1
+width, height = 300, 300
+size = width, height
 screen = pygame.display.set_mode(size)
 screen.fill((0, 0, 0))
-RGB = [(0, 0, 255), (0, 255, 0), (255, 0, 0)]
-j = 0
-for i in range(col):
-    pygame.draw.circle(screen, RGB[j], ((col * thickness), (col * thickness)), thickness * (col - i))
-    j += 1
-    if j == len(RGB):
-        j = 0
-    pygame.display.flip()
+pi = 3.14
+for i in range(N):
+    pygame.draw.ellipse(screen, (255, 255, 255), (0, 150 - ((150 // N) * (i + 1)), 300, (300 // N) * (i + 1)), 1)
+    pygame.draw.ellipse(screen, (255, 255, 255), (150 - ((150 // N) * (i + 1)), 0, (300 // N) * (i + 1), 300), 1)
 while pygame.event.wait().type != pygame.QUIT:
     pygame.display.update()
 pygame.quit()
