@@ -1,29 +1,20 @@
 import pygame
 
 pygame.init()
-size = [width, height] = [501, 501]
-x, y = width // 2, height // 2
+size = [width, height] = [200, 200]
 running = True
-f_click = False
-mouse_pos = [width // 2, height // 2]
+number = 0
+font = pygame.font.Font(None, 150)
 screen = pygame.display.set_mode(size)
 clock = pygame.time.Clock()
 while running:
     screen.fill((0, 0, 0))
+    text = font.render(str(number), 1, (255, 0, 0))
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
-        if event.type == pygame.MOUSEBUTTONDOWN:
-            if event.button == 1:
-                mouse_pos = pygame.mouse.get_pos()
-    if x < mouse_pos[0]:
-        x += 1
-    if x > mouse_pos[0]:
-        x -= 1
-    if y < mouse_pos[1]:
-        y += 1
-    if y > mouse_pos[1]:
-        y -= 1
-    pygame.draw.circle(screen, (255, 0, 0), (x, y), 20)
+        if event.type == 17:
+            number += 1
+    screen.blit(text, (width // 2 - text.get_width() // 2, height // 2 - text.get_height() // 2))
     pygame.display.flip()
     clock.tick(60)
