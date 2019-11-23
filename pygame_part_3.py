@@ -21,15 +21,17 @@ class Board:
     def render(self):
         for i in range(len(self.board[0])):
             for j in range(len(self.board)):
-                color = self.board[j][i]
-                c, col = 1, (255, 255, 255)
-                if color == 1:
-                    c, col = 0, (0, 0, 255)
-                if color == 2:
-                    c, col = 0, (255, 0, 0)
-
-                pygame.draw.rect(screen, col, (self.left + i * self.cell_size,
-                                 self.top + j * self.cell_size, self.cell_size, self.cell_size), c)
+                c = self.board[j][i]
+                if c == 1:
+                    pygame.draw.line(screen, (0, 0, 255), (self.left + i * self.cell_size,
+                                     self.top + j * self.cell_size), (self.left + (i + 1) * self.cell_size,
+                                     self.top + (j + 1) * self.cell_size), 3)
+                    pygame.draw.line(screen, (0, 0, 255), (self.left + (i + 1) * self.cell_size,
+                                     self.top + j * self.cell_size), (self.left + i * self.cell_size,
+                                     self.top + (j + 1) * self.cell_size), 3)
+                if c == 2:
+                    pygame.draw.circle(screen, (255, 0, 0), (self.left + i * self.cell_size + self.cell_size // 2,
+                                       self.top + j * self.cell_size + self.cell_size // 2), self.cell_size // 2 - 1, 2)
                 pygame.draw.rect(screen, (255, 255, 255), (self.left + i * self.cell_size,
                                  self.top + j * self.cell_size, self.cell_size, self.cell_size), 1)
 
