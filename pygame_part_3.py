@@ -6,7 +6,7 @@ class Board:
     def __init__(self, width, height):
         self.width = width
         self.height = height
-        self.board = [[1] * width for _ in range(height)]
+        self.board = [[0] * width for _ in range(height)]
         # значения по умолчанию
         self.left = 30
         self.top = 30
@@ -21,9 +21,17 @@ class Board:
     def render(self):
         for i in range(len(self.board[0])):
             for j in range(len(self.board)):
-                c = self.board[j][i]
-                pygame.draw.rect(screen, (255, 255, 255), (self.left + i * self.cell_size,
+                color = self.board[j][i]
+                c, col = 1, (255, 255, 255)
+                if color == 1:
+                    c, col = 0, (0, 0, 255)
+                if color == 2:
+                    c, col = 0, (255, 0, 0)
+
+                pygame.draw.rect(screen, col, (self.left + i * self.cell_size,
                                  self.top + j * self.cell_size, self.cell_size, self.cell_size), c)
+                pygame.draw.rect(screen, (255, 255, 255), (self.left + i * self.cell_size,
+                                 self.top + j * self.cell_size, self.cell_size, self.cell_size), 1)
 
     def get_cell(self, mouse):
         if self.left <= mouse[0] <= self.left + self.cell_size * len(self.board[0]) \
@@ -39,13 +47,13 @@ class Board:
             self.on_click(cell)
 
     def switch_color(self, x, y):
-        if self.board[y][x] == 1:
-            self.board[y][x] = 0
+        if self.board[y][x] < 2:
+            self.board[y][x] += 1
         else:
-            self.board[y][x] = 1
+            self.board[y][x] = 0
 
     def on_click(self, xy):
-        print(xy)
+        self.switch_color(xy[0], xy[1])
 
 
 board = Board(10, 10)
