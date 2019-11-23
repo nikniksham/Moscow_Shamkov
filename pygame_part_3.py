@@ -38,12 +38,19 @@ class Board:
         if cell is not None:
             self.on_click(cell)
 
-    def on_click(self, xy):
-        x, y = xy
+    def switch_color(self, x, y):
         if self.board[y][x] == 1:
             self.board[y][x] = 0
         else:
             self.board[y][x] = 1
+
+    def on_click(self, xy):
+        x, y = xy
+        for i in range(len(self.board)):
+            self.switch_color(y, i)
+        for i in range(len(self.board[0])):
+            self.switch_color(i, x)
+        self.switch_color(x, y)
 
 
 board = Board(10, 10)
