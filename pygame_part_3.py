@@ -93,7 +93,8 @@ class Board:
 
 
 #                                        !!!!!!!!!!!!!!ПЕРВЫМ ХОДИТ ЗЕЛЁНЫЙ!!!!!!!!!!!!!!!
-board = Board(10, 10)
+width_height = int(input())
+board = Board(width_height, width_height)
 # board.set_view(20, 20, 20)  # Можно задавать параметры: крайний левый угол, верхний угол, размер клетки соответственно
 clock = pygame.time.Clock()
 size = [width, height] = [board.width * board.cell_size + board.left * 2,  # Размеры поля будут подстраиваться так, что
