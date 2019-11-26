@@ -1,13 +1,16 @@
 import pygame
+import random
 
 
 class Board:
     # создание поля
     def __init__(self, x, y):
-        self.cell = []
+        self.font = pygame.font.Font(None, int(30 * 0.7))
+        self.list_contacts = [[1, 1], [1, 0], [1, -1], [0, 1], [0, -1], [-1, 1], [-1, 0], [-1, -1]]
+        self.mine_list = []
         self.width = x
         self.height = y
-        self.board = [[0] * self.width for _ in range(self.height)]
+        self.board = [[-1] * self.width for _ in range(self.height)]
         # значения по умолчанию
         self.left = 30
         self.top = 30
@@ -17,18 +20,18 @@ class Board:
     def set_view(self, left, top, cell_size):
         self.left = left
         self.top = top
+        self.font = pygame.font.Font(None, int(cell_size * 1.2))
         self.cell_size = cell_size
 
     def render(self):
         for i in range(len(self.board[0])):
             for j in range(len(self.board)):
-                color = self.board[j][i]
-                c, col = 1, (255, 255, 255)
-                if color == 1:
-                    c, col = 0, (0, 255, 0)
-
-                pygame.draw.rect(screen, col, (self.left + i * self.cell_size,
-                                 self.top + j * self.cell_size, self.cell_size, self.cell_size), c)
+                if self.board[j][i] == 10:
+                    pygame.draw.rect(screen, (255, 0, 0), (self.left + i * self.cell_size,
+                                     self.top + j * self.cell_size, self.cell_size, self.cell_size))
+                if self.board[j][i] not in [-1, 10]:
+                    text = self.font.render(str(self.board[j][i]), 1, (0, 255, 100))
+                    screen.blit(text, (i * self.cell_size + self.left + 3, j * self.cell_size + self.top + 3))
                 pygame.draw.rect(screen, (255, 255, 255), (self.left + i * self.cell_size,
                                  self.top + j * self.cell_size, self.cell_size, self.cell_size), 1)
 
@@ -46,90 +49,39 @@ class Board:
             self.on_click(cell)
 
     def switch_color(self, x, y):
-        if self.board[y][x] == 0:
-            self.cell.append([y, x])
-            self.board[y][x] = 1
-        else:
-            self.board[y][x] = 0
-            self.cell.remove([y, x])
+        if self.board[y][x] == -1:
+            self.board[y][x] = self.open_cell(x, y)
 
     def on_click(self, xy):
         self.switch_color(xy[0], xy[1])
 
+    def open_cell(self, x, y):
+        contacts = 0
+        for i in range(8):
+            cell = [y + self.list_contacts[i][0], x + self.list_contacts[i][1]]
+            if cell in self.mine_list:
+                contacts += 1
+        return contacts
 
-class Life(Board):
-    def __init__(self, x, y):
+
+class Minesweeper(Board):
+    def __init__(self, x, y, mine):
         super().__init__(x, y)
-        self.list_contacts = [[1, 1], [1, 0], [1, -1], [0, 1], [0, -1], [-1, 1], [-1, 0], [-1, -1]]
+        self.mine = mine
+        self.cell = [[0] * self.width for _ in range(self.height)]
+        self.create_mine_field()
 
-    def convert_cell(self, cell):
-        if cell[0] == -1:
-            cell[0] = self.width - 1
-        if cell[1] == -1:
-            cell[1] = self.height - 1
-        if cell[0] == self.width:
-            cell[0] = 0
-        if cell[1] == self.height:
-            cell[1] = 0
-        return cell
-
-    def tor(self, cell, cell2):
-        f_width, f_height = False, False
-        if (cell[0] == 0 and cell2[0] == self.width - 1) or (cell[0] == self.width - 1 and cell2[0] == 0):
-            f_width = True
-        if (cell[1] == 0 and cell2[1] == self.height - 1) or (cell[1] == self.height - 1 and cell2[1] == 0):
-            f_height = True
-        return f_width, f_height
-
-    def next_move(self):
-        cell_contact = []
-        for elem in self.cell:
-            for i in range(8):
-                cell = [elem[0] + self.list_contacts[i][0], elem[1] + self.list_contacts[i][1]]
-                self.convert_cell(cell)
-                if cell not in cell_contact and -1 < cell[0] < self.width and -1 < cell[1] < self.height:
-                    cell_contact.append(cell)
-
-        for elem in self.cell:
-            if elem in cell_contact:
-                cell_contact.remove(elem)
-
-        new_cell = []
-        for elem in cell_contact:
-            contact = 0
-            for cell in self.cell:
-                f_width, f_height = self.tor(elem, cell)
-                # print(elem[0] in [cell[0] - 1, cell[0], cell[0] + 1] or f_width,
-                #       elem[1] in [cell[1] - 1, cell[1], cell[1] + 1] or f_height)
-                if (elem[0] in [cell[0] - 1, cell[0], cell[0] + 1] or f_width) \
-                        and (elem[1] in [cell[1] - 1, cell[1], cell[1] + 1] or f_height):
-                    contact += 1
-            if contact == 3:
-                new_cell.append(elem)
-
-        del_l = []
-        for elem in self.cell:
-            contact = 0
-            for cell in self.cell:
-                if elem != cell:
-                    f_width, f_height = self.tor(elem, cell)
-                    if (elem[0] in [cell[0] - 1, cell[0], cell[0] + 1] or f_width) \
-                            and (elem[1] in [cell[1] - 1, cell[1], cell[1] + 1] or f_height):
-                        contact += 1
-            if contact not in [2, 3]:
-                del_l.append(elem)
-
-        for elem in del_l:
-            self.board[elem[0]][elem[1]] = 0
-            self.cell.remove(elem)
-
-        for elem in new_cell:
-            self.board[elem[0]][elem[1]] = 1
-            self.cell.append(elem)
+    def create_mine_field(self):
+        for i in range(self.mine):
+            random_pos = [random.choice(range(self.height - 1)), random.choice(range(self.width - 1))]
+            if random_pos not in self.mine_list:
+                self.mine_list.append(random_pos)
+                self.board[random_pos[0]][random_pos[1]] = 10
 
 
-board = Life(20, 20)
-board.set_view(10, 10, 20)  # Можно задавать параметры: крайний левый угол, верхний угол, размер клетки соответственно
+pygame.font.init()
+board = Minesweeper(20, 20, 10)
+# board.set_view(10, 10, 20)  # Можно задавать параметры: крайний левый угол, верхний угол, размер клетки соответственно
 clock = pygame.time.Clock()
 size = [width, height] = [board.width * board.cell_size + board.left * 2,  # Размеры поля будут подстраиваться так, что
                           board.height * board.cell_size + board.top * 2]  # бы ваше поле было ровно по цетру
@@ -146,21 +98,6 @@ while running:
         if event.type == pygame.MOUSEBUTTONDOWN:
             if event.button == 1:
                 board.get_click(event.pos)
-            if event.button == 4:
-                speed += 1
-            if event.button == 5 and speed > 0:
-                speed -= 1
-        if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_SPACE:
-                if f_pause:
-                    f_pause = False
-                else:
-                    f_pause = True
-    if tick * speed > 60 and f_pause is False:
-        tick = 0
-        board.next_move()
-    if tick < 60:
-        tick += 1
     screen.fill((0, 0, 0))
     board.render()
     pygame.display.flip()
