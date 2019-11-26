@@ -62,11 +62,31 @@ class Life(Board):
         super().__init__(x, y)
         self.list_contacts = [[1, 1], [1, 0], [1, -1], [0, 1], [0, -1], [-1, 1], [-1, 0], [-1, -1]]
 
+    def convert_cell(self, cell):
+        if cell[0] == -1:
+            cell[0] = self.width - 1
+        if cell[1] == -1:
+            cell[1] = self.height - 1
+        if cell[0] == self.width:
+            cell[0] = 0
+        if cell[1] == self.height:
+            cell[1] = 0
+        return cell
+
+    def tor(self, cell, cell2):
+        f_width, f_height = False, False
+        if (cell[0] == 0 and cell2[0] == self.width - 1) or (cell[0] == self.width - 1 and cell2[0] == 0):
+            f_width = True
+        if (cell[1] == 0 and cell2[1] == self.height - 1) or (cell[1] == self.height - 1 and cell2[1] == 0):
+            f_height = True
+        return f_width, f_height
+
     def next_move(self):
         cell_contact = []
         for elem in self.cell:
             for i in range(8):
                 cell = [elem[0] + self.list_contacts[i][0], elem[1] + self.list_contacts[i][1]]
+                self.convert_cell(cell)
                 if cell not in cell_contact and -1 < cell[0] < self.width and -1 < cell[1] < self.height:
                     cell_contact.append(cell)
 
@@ -77,8 +97,12 @@ class Life(Board):
         new_cell = []
         for elem in cell_contact:
             contact = 0
-            for elem_2 in self.cell:
-                if elem[0] in [elem_2[0] - 1, elem_2[0], elem_2[0] + 1] and elem[1] in [elem_2[1] - 1, elem_2[1], elem_2[1] + 1]:
+            for cell in self.cell:
+                f_width, f_height = self.tor(elem, cell)
+                # print(elem[0] in [cell[0] - 1, cell[0], cell[0] + 1] or f_width,
+                #       elem[1] in [cell[1] - 1, cell[1], cell[1] + 1] or f_height)
+                if (elem[0] in [cell[0] - 1, cell[0], cell[0] + 1] or f_width) \
+                        and (elem[1] in [cell[1] - 1, cell[1], cell[1] + 1] or f_height):
                     contact += 1
             if contact == 3:
                 new_cell.append(elem)
@@ -86,10 +110,11 @@ class Life(Board):
         del_l = []
         for elem in self.cell:
             contact = 0
-            for elem_2 in self.cell:
-                if elem != elem_2:
-                    if elem[0] in [elem_2[0] - 1, elem_2[0], elem_2[0] + 1] \
-                            and elem[1] in [elem_2[1] - 1, elem_2[1], elem_2[1] + 1]:
+            for cell in self.cell:
+                if elem != cell:
+                    f_width, f_height = self.tor(elem, cell)
+                    if (elem[0] in [cell[0] - 1, cell[0], cell[0] + 1] or f_width) \
+                            and (elem[1] in [cell[1] - 1, cell[1], cell[1] + 1] or f_height):
                         contact += 1
             if contact not in [2, 3]:
                 del_l.append(elem)
@@ -126,10 +151,11 @@ while running:
             if event.button == 5 and speed > 0:
                 speed -= 1
         if event.type == pygame.KEYDOWN:
-            if f_pause:
-                f_pause = False
-            else:
-                f_pause = True
+            if event.key == pygame.K_SPACE:
+                if f_pause:
+                    f_pause = False
+                else:
+                    f_pause = True
     if tick * speed > 60 and f_pause is False:
         tick = 0
         board.next_move()
