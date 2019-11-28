@@ -6,6 +6,7 @@ class Board:
     # создание поля
     def __init__(self, x, y):
         self.font = pygame.font.Font(None, int(30 * 0.7))
+        self.del_list = []
         self.list_contacts = [[1, 1], [1, 0], [1, -1], [0, 1], [0, -1], [-1, 1], [-1, 0], [-1, -1]]
         self.mine_list = []
         self.width = x
@@ -50,9 +51,10 @@ class Board:
 
     def switch_color(self, x, y):
         if self.board[y][x] == -1:
-            self.board[y][x] = self.open_cell(x, y)
+            self.open_group_cell(x, y)
 
     def on_click(self, xy):
+        print(self.board)
         self.switch_color(xy[0], xy[1])
 
     def open_cell(self, x, y):
@@ -62,6 +64,26 @@ class Board:
             if cell in self.mine_list:
                 contacts += 1
         return contacts
+
+    def open_group_cell(self, x, y):
+        open_list = []
+        self.board[y][x] = self.open_cell(x, y)
+        cell = [y, x]
+        while True:
+            l_p = len(open_list)
+            for i in range(8):
+                cell = [y + self.list_contacts[i][0], x + self.list_contacts[i][1]]
+                if 0 < cell[0] < self.height - 1 and 0 < cell[1] < self.width:
+                    if cell not in self.del_list:
+                        open_list.append([cell[0], cell[1]])
+            print(l_p, len(open_list))
+            y, x = cell[0], cell[1]
+            if l_p == len(open_list):
+                break
+            for elem in open_list:
+                if elem not in self.del_list:
+                    self.board[elem[0]][elem[1]] = self.open_cell(elem[1], elem[0])
+                    self.del_list.append(cell)
 
 
 class Minesweeper(Board):
@@ -80,7 +102,7 @@ class Minesweeper(Board):
 
 
 pygame.font.init()
-board = Minesweeper(20, 20, 10)
+board = Minesweeper(5, 5, 5)
 # board.set_view(10, 10, 20)  # Можно задавать параметры: крайний левый угол, верхний угол, размер клетки соответственно
 clock = pygame.time.Clock()
 size = [width, height] = [board.width * board.cell_size + board.left * 2,  # Размеры поля будут подстраиваться так, что
