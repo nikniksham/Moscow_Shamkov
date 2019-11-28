@@ -10,6 +10,7 @@ class Board:
         self.list_contacts = [[1, 1], [1, 0], [1, -1], [0, 1], [0, -1], [-1, 1], [-1, 0], [-1, -1]]
         self.mine_list = []
         self.width = x
+        self.del_open = []
         self.height = y
         self.board = [[-1] * self.width for _ in range(self.height)]
         # значения по умолчанию
@@ -54,7 +55,6 @@ class Board:
             self.open_group_cell(x, y)
 
     def on_click(self, xy):
-        print(self.board)
         self.switch_color(xy[0], xy[1])
 
     def open_cell(self, x, y):
@@ -65,25 +65,34 @@ class Board:
                 contacts += 1
         return contacts
 
+    def contact_cell(self, x, y, open_list):
+        self.del_open.append([y, x])
+        for i in range(8):
+            cell = [y + self.list_contacts[i][0], x + self.list_contacts[i][1]]
+            if -1 < cell[0] < self.height and -1 < cell[1] < self.width:
+                if self.board[cell[0]][cell[1]] == -1 and cell not in self.del_list:
+                    if self.open_cell(cell[1], cell[0]) == 0:
+                        open_list.append([cell[0], cell[1]])
+                        self.del_list.append(cell)
+                    if self.open_cell(cell[1], cell[0]) != 0 and self.open_cell(x, y) == 0:
+                        open_list.append([cell[0], cell[1]])
+                        self.del_list.append(cell)
+                        self.del_open.append([cell[0], cell[1]])
+        return open_list
+
     def open_group_cell(self, x, y):
-        open_list = []
         self.board[y][x] = self.open_cell(x, y)
-        cell = [y, x]
+        open_list = []
+        open_list = self.contact_cell(x, y, open_list)
         while True:
             l_p = len(open_list)
-            for i in range(8):
-                cell = [y + self.list_contacts[i][0], x + self.list_contacts[i][1]]
-                if 0 < cell[0] < self.height - 1 and 0 < cell[1] < self.width:
-                    if cell not in self.del_list:
-                        open_list.append([cell[0], cell[1]])
-            print(l_p, len(open_list))
-            y, x = cell[0], cell[1]
-            if l_p == len(open_list):
-                break
             for elem in open_list:
-                if elem not in self.del_list:
-                    self.board[elem[0]][elem[1]] = self.open_cell(elem[1], elem[0])
-                    self.del_list.append(cell)
+                if elem not in self.del_open:
+                    open_list = self.contact_cell(elem[1], elem[0], open_list)
+            if len(open_list) == l_p:
+                break
+        for elem in open_list:
+            self.board[elem[0]][elem[1]] = self.open_cell(elem[1], elem[0])
 
 
 class Minesweeper(Board):
@@ -95,14 +104,14 @@ class Minesweeper(Board):
 
     def create_mine_field(self):
         for i in range(self.mine):
-            random_pos = [random.choice(range(self.height - 1)), random.choice(range(self.width - 1))]
+            random_pos = [random.choice(range(self.height)), random.choice(range(self.width))]
             if random_pos not in self.mine_list:
                 self.mine_list.append(random_pos)
                 self.board[random_pos[0]][random_pos[1]] = 10
 
 
 pygame.font.init()
-board = Minesweeper(5, 5, 5)
+board = Minesweeper(20, 20, 10)
 # board.set_view(10, 10, 20)  # Можно задавать параметры: крайний левый угол, верхний угол, размер клетки соответственно
 clock = pygame.time.Clock()
 size = [width, height] = [board.width * board.cell_size + board.left * 2,  # Размеры поля будут подстраиваться так, что
